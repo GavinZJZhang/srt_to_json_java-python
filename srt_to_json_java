@@ -1,0 +1,223 @@
+/**
+ * 双语srt格式字幕转json格式并返回数据
+ *
+ * @param  inputPath   srt字幕路径
+ * @throws IOException
+ *
+ */
+public Result dsubtitleSrt2json(Integer videoId) {
+        sub = subtitleDao.findByVideoId(videoId);
+        String inputPath = sub.getMergeSubtitlePath();
+        Result result = new Result();
+        /**
+         * @Author notify friendly
+         * Core Code beginning 核心代码开始
+         */
+        try{
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputPath), "UTF-8"));
+        String indexline,timeline,textline_zh,textline_en,kongline;
+        JSONArray subtitle = new JSONArray();
+        while ((indexline = reader.readLine()) != null && (timeline = reader.readLine()) != null &&
+        (textline_zh = reader.readLine()) != null && (textline_en = reader.readLine()) != null &&(kongline = reader.readLine()) != null)
+        {
+        String rebegin = "(.*?) -->";
+        String reend = "(.*?)(--> )(.*)";
+        List<String> list = new ArrayList<String>();
+        List<String> extvounoLists = new ArrayList<String>();
+        Pattern pabegin = Pattern.compile(rebegin);
+        Pattern paend = Pattern.compile(reend);
+        Matcher mbegin = pabegin.matcher(timeline);
+        Matcher mend = paend.matcher(timeline);
+        JSONObject subs = new JSONObject();
+        while (mend.find()) {
+        int i = 1;
+        list.add(mend.group(i));
+        subs.put("end", mend.group(i+2));
+        i++;
+        }
+        while (mbegin.find()) {
+        int i = 1;
+        list.add(mbegin.group(i));
+        subs.put("begin", mbegin.group(i));
+        i++;
+        }
+        JSONArray texts = new JSONArray();
+        texts.add(textline_zh);
+        texts.add(textline_en);
+        subs.put("texts", texts);
+        subtitle.add(subs);
+        }
+        reader.close();
+        /**
+         * @Author notify friendly
+         * Core Code ending 核心代码结束
+         */
+        result.setCode(200);
+        System.out.println(subtitle);
+        result.setData(subtitle);
+        //result.setData(JSONObject.toJSONString(subtitle));
+        //return JSONObject.toJSONString(subtitle);
+        }
+        catch (IOException e) {
+        e.printStackTrace();
+        result.setCode(500);
+        result.setData("返回json数据失败！");
+        }
+
+        return result;
+        }
+
+/**
+ * 单双语srt格式字幕转json格式并返回数据
+ *
+ * @param  inputPath   srt字幕路径
+ * @param  type        字幕类型
+ * @throws IOException
+ *
+ */
+public Result sdsubtitleSrt2json(Integer videoId, String type) {
+        System.out.println(type);
+        Result result = new Result();
+        sub = subtitleDao.findByVideoId(videoId);
+        String inputPath;
+        if(type.equals("merge")){
+        inputPath = sub.getMergeSubtitlePath();
+        }else if(type.equals("en")){
+        inputPath = sub.getEnSubtitlePath();
+        }else if(type.equals("zh")){
+        inputPath = sub.getZhSubtitlePath();
+        }else {
+        result.setCode(400);
+        result.setData("您输入的参数类型不正确！");
+        return result;
+        }
+        System.out.println(inputPath);
+        /**
+         * @Author notify friendly
+         * Core Code beginning 核心代码开始
+         */
+        try{
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputPath), "UTF-8"));
+        String indexline,timeline,textline_zh,textline_en,kongline;
+        JSONArray subtitle = new JSONArray();
+        while ((indexline = reader.readLine()) != null && (timeline = reader.readLine()) != null &&
+        (textline_zh = reader.readLine()) != null )
+        {//((textline_en = reader.readLine()) != null) &&
+//        	System.out.println("索引："+indexline);
+//       	 	System.out.println("时间："+timeline);
+//       	 	System.out.println("中文："+textline_zh);
+//       	 	//System.out.println("英文："+textline_en);
+//        	if( ((textline_en = reader.readLine()) == null) || (textline_en.length() == 0)){
+//
+//        		 System.out.println("这是空行"+textline_en);
+//        	 }
+//        	else {
+//        		kongline = reader.readLine();
+//        		System.out.println("英文："+textline_en);
+//        		System.out.println("这是空行"+kongline);
+//        	}
+        System.out.println("索引："+indexline);
+        System.out.println("时间："+timeline);
+        System.out.println("中文："+textline_zh);
+        //System.out.println("英文："+textline_en);
+        if( ((textline_en = reader.readLine()) == null) || (textline_en.length() == 0)){
+        System.out.println("这是空行"+textline_en);
+
+        String rebegin = "(.*?) -->";
+        String reend = "(.*?)(--> )(.*)";
+        List<String> list = new ArrayList<String>();
+        List<String> extvounoLists = new ArrayList<String>();
+        Pattern pabegin = Pattern.compile(rebegin);
+        Pattern paend = Pattern.compile(reend);
+        Matcher mbegin = pabegin.matcher(timeline);
+        Matcher mend = paend.matcher(timeline);
+        JSONObject subs = new JSONObject();
+        while (mend.find()) {
+        int i = 1;
+        list.add(mend.group(i));
+        //System.out.println(mend.group(i+2));
+        subs.put("end", mend.group(i+2));
+        //subtitle.add(subs);
+        i++;
+        }
+        while (mbegin.find()) {
+        int i = 1;
+        list.add(mbegin.group(i));
+        //System.out.println(mbegin.group(i));
+        subs.put("begin", mbegin.group(i));
+        //subtitle.add(subs);
+        i++;
+        }
+        subs.put("texts",textline_zh);
+        subtitle.add(subs);
+        }
+        else {
+        kongline = reader.readLine();
+        System.out.println("英文："+textline_en);
+        System.out.println("这是空行"+kongline);
+
+        String rebegin = "(.*?) -->";
+        String reend = "(.*?)(--> )(.*)";
+        List<String> list = new ArrayList<String>();
+        List<String> extvounoLists = new ArrayList<String>();
+        Pattern pabegin = Pattern.compile(rebegin);
+        Pattern paend = Pattern.compile(reend);
+        Matcher mbegin = pabegin.matcher(timeline);
+        Matcher mend = paend.matcher(timeline);
+        JSONObject subs = new JSONObject();
+        while (mend.find()) {
+        int i = 1;
+        list.add(mend.group(i));
+        //System.out.println(mend.group(i+2));
+        subs.put("end", mend.group(i+2));
+        //subtitle.add(subs);
+        i++;
+        }
+        while (mbegin.find()) {
+        int i = 1;
+        list.add(mbegin.group(i));
+        //System.out.println(mbegin.group(i));
+        subs.put("begin", mbegin.group(i));
+        //subtitle.add(subs);
+        i++;
+        }
+//        		System.out.print(textline_zh);
+//        		System.out.print(textline_en);
+        JSONArray texts = new JSONArray();
+        texts.add(textline_zh);
+        texts.add(textline_en);
+        subs.put("texts", texts);
+        subtitle.add(subs);
+//        		for (int i=0;i<list.size();i++) {
+//        			JSONObject subs = new JSONObject();
+//        			String str = list.get(i);
+//        			System.out.println(str);
+//        			subs.put("begin", str);
+//        			subtitle.add(subs);
+//        		}
+//        	}
+//        	System.out.println(subtitle);
+
+
+        }
+
+        }
+        reader.close();
+        /**
+         * @Author notify friendly
+         * Core Code beginning 核心代码开始
+         */
+        result.setCode(200);
+        System.out.println(subtitle);
+        result.setData(subtitle);
+        //result.setData(JSONObject.toJSONString(subtitle));
+        //return JSONObject.toJSONString(subtitle);
+        }
+        catch (IOException e) {
+        e.printStackTrace();
+        result.setCode(500);
+        result.setData("返回json数据失败！");
+        }
+
+        return result;
+        }
